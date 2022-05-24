@@ -1,0 +1,38 @@
+﻿@page "/Player/{id:int?}"
+@using Microsoft.EntityFrameworkCore
+@using R1StatsModel
+@using R1StatsModel.Model
+@inject IDbContextFactory<StatsContext> DbFactory
+
+@if (player != null)
+{
+    <PageTitle>@player.Name</PageTitle>
+}
+else
+{
+    <PageTitle>Player</PageTitle>
+}
+
+@if(player != null)
+{
+    <h1>@player?.Name</h1>
+}
+@code {
+
+    [Parameter]
+    public int id { get; set; } = 0;
+
+    public Player? player;
+    public ICollection<MatchPlayer> matchHistory;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+        if (id != 0)
+        {
+            var a = await c.Players.SingleAsync(x => x.Id == id);
+            player = a;
+        }
+    }
+
+}

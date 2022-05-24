@@ -1,0 +1,24 @@
+﻿@using R1StatsModel
+@using R1StatsModel.Model
+@using Microsoft.EntityFrameworkCore
+@using R1StatsModel.Extensions
+@using R1StatsModel.Pagenation
+@using R1StatsMud.Shared.MatchParts
+
+@inject IDbContextFactory<StatsContext> DbFactory
+@page "/match/{id:int}"
+<PageTitle>Match</PageTitle>
+<MatchDetails Match="match"/>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    public Match? match;
+    protected override async Task OnInitializedAsync()
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+        var a = c.Matches.Include(x => x.Players).Include(x => x.Teams).SingleOrDefault(x => x.Id == id);
+        match = a;
+    }
+}

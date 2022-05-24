@@ -1,0 +1,87 @@
+﻿@using R1StatsModel
+@using R1StatsModel.Model
+@using Microsoft.EntityFrameworkCore
+@using R1StatsModel.Extensions
+@using R1StatsModel.Pagenation
+@using R1StatsMud.Shared.MatchParts
+
+@inject IDbContextFactory<StatsContext> DbFactory
+
+@page "/match_history/{player_id:int?}"
+
+@if (player_id == 0)
+{
+    <PageTitle>Match History</PageTitle>
+}
+
+<MudExpansionPanels MultiExpansion="true" Style="padding-bottom:55px;">
+    @foreach (var match in results.Results)
+    {
+        <MudExpansionPanel Text="@MatchTitle(match)" @bind-IsExpanded="expanded[match.Id]">
+            <MatchDetails Match="match"></MatchDetails>
+        </MudExpansionPanel>
+    }
+</MudExpansionPanels>
+<div class="match-pagination">
+    <MudPagination Color="Color.Primary" MiddleCount="8" SelectedChanged="GetResults" Count="@results.PageCount"></MudPagination>
+</div>
+@code
+{
+    [Parameter]
+    public int player_id { get; set; } = -1;
+
+    public Match[] matches;
+    public PagedResult<Match> results;
+    public int matchId = 1;
+    Dictionary<int, bool> expanded = new Dictionary<int, bool>();
+    protected override async Task OnInitializedAsync()
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+        if (player_id == 0)
+        {
+            var a = c.Matches.Include(x => x.Players).Include(x => x.Teams).OrderByDescending(x => x.Id).GetPaged(1, 20);
+            results = a;
+        }
+        else
+        {
+            var a = c.Matches.Include(x => x.Players).Include(x => x.Teams).OrderByDescending(x => x.Id).Where(x => x.Players.Any(y => y.Player.Id == player_id)).GetPaged(1, 10);
+            results = a;
+        }
+        expanded = new Dictionary<int, bool>();
+        foreach (var aResult in results.Results)
+        {
+            expanded.Add(aResult.Id, false);
+        }
+        
+    }
+
+    public async void GetResults(int page)
+    {
+        foreach (var (key, value) in expanded)
+        {
+            expanded[key] = false;
+        }
+        await using var c = await DbFactory.CreateDbContextAsync();
+        //var a = c.Matches.Include(x => x.Players).Include(x => x.Teams).OrderByDescending(x => x.Id).GetPaged(page, 20);
+        if (player_id == 0)
+        {
+            var a = c.Matches.Include(x => x.Players).Include(x => x.Teams).OrderByDescending(x => x.Id).GetPaged(page, 20);
+            results = a;
+        }
+        else
+        {
+            var a = c.Matches.Include(x => x.Players).Include(x => x.Teams).OrderByDescending(x => x.Id).Where(x => x.Players.Any(y => y.Player.Id == player_id)).GetPaged(page, 10);
+            results = a;
+        }
+        expanded = new Dictionary<int, bool>();
+        foreach (var aResult in results.Results)
+        {
+            expanded.Add(aResult.Id, false);
+        }
+    }
+
+    private string MatchTitle(Match match)
+    {
+        return $"{match.Variant} - {match.GameType} - {match.Map} - {match.StartTime}";
+    }
+}

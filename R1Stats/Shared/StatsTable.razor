@@ -1,0 +1,47 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using R1StatsModel
+@using R1StatsModel.Extensions
+@using R1StatsModel.Model
+@using R1StatsModel.Pagenation
+
+@inject IDbContextFactory<StatsContext> DbFactory
+
+<h1>@(players?.PageCount)</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Kills</th>
+        <th>Assists</th>
+        <th>Deaths</th>
+        <th>K/D/A</th>
+    </tr>
+    </thead>
+    <tbody>
+    @if (players?.Results.Count > 0)
+    {
+        @foreach (var player in players.Results)
+        {
+            <tr>
+                <td>@player.Name</td>
+                <td>@player.Kills</td>
+                <td>@player.Assists</td>
+                <td>@player.Deaths</td>
+                <td>@player.KDA</td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>
+
+@code {
+
+    private PagedResult<Player>? players;
+    protected override async Task OnInitializedAsync()
+    {
+        await using var ctx = await DbFactory.CreateDbContextAsync();
+        var a = ctx.Players.OrderByDescending(x => x.KDA).GetPaged(1, 10);
+        players = a;
+    }
+}

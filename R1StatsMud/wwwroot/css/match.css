@@ -1,0 +1,23 @@
+﻿.match-pagination {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 10px;
+    background: #27272f;
+    width: 100%;
+}
+
+    .match-pagination .mud-pagination {
+        float: right;
+    }
+
+.match-link {
+    visibility: hidden;
+}
+.mud-panel-expanded .match-link {
+    float: right;
+    bottom: 0;
+    position: absolute;
+    right: 10px;
+    visibility: visible;
+}

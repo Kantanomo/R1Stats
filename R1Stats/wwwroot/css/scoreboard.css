@@ -1,0 +1,15 @@
+﻿.scoreboard-container {
+    width: 90%;
+    margin: 0 auto;
+}  
+    
+    .scoreboard-container .nav .nav-item{
+        cursor: pointer;
+    }
+    .scoreboard-container .scoreboard-tables {
+        border: 1px solid #dee2e6;
+        border-top: none;
+        padding: 5px;
+    }
+    .scoreboard-container .scoreboard-tables .scoreboard {
+    }

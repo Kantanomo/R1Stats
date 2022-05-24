@@ -1,0 +1,33 @@
+﻿.match-details-small {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+}
+.match-details-small .match-info-container {
+    width: 100%;
+}
+
+.match-details-small .match-info {
+    height: 26px;
+    /* padding-left: 10px; */
+}
+
+.match-details-small .match-info p {
+}
+.match-details-small .map-image-container {
+    width: 100%;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+    .match-details-small .map-image {
+        max-width: 330px;
+        width: 100%;
+    }
+
+    .match-details-small .game-image {
+        position: absolute;
+        width: 174px;
+        top: 5%;
+        left: -5%;
+    }

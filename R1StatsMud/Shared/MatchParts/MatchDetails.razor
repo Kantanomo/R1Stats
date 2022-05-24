@@ -1,0 +1,16 @@
+﻿@using R1StatsModel.Model
+<MudGrid>
+    <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+        <MudItem md="2">
+            <MatchInfo Match="@Match"/>
+        </MudItem>
+    </MudHidden>
+    <MudItem md="10" xs="12">
+        <ScoreBoard Match="@Match"/>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter]
+    public Match Match { get; set; }
+}

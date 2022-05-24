@@ -1,0 +1,51 @@
+﻿@using R1StatsModel.Model
+@using R1StatsMud.Shared.MatchParts.Score_Board
+@using R1StatsModel.Enum
+
+<MudTabs Elevation="10" Rounded="true" ApplyEffectsToContainer="true" Border="true" Color="@Color.Dark">
+    <MudTabPanel Text="Team" Style="padding:0;">
+        <TeamStatsCard Match="@Match"/>
+    </MudTabPanel>
+    <MudTabPanel Text="Match">
+        @switch (Match?.GameType)
+        {
+            case GameType.Slayer:
+                <SlayerStatsCard Match="Match"/>
+                break;
+            case GameType.CTF:
+                <CTFStatsCard Match="Match"/>
+                break;
+            case GameType.Assault:
+                <AssaultStatsCard Match="Match"/>
+                break;
+            case GameType.Territories:
+                <TerritoriesStatsCard Match="Match"/>
+                break;
+            case GameType.Oddball:
+                <OddballStatsCard Match="Match"/>
+                break;
+            case GameType.KOTH:
+                <KothStatsCard Match="Match"/>
+                break;
+            case GameType.Juggernaut:
+                <JuggernautStatsCard Match="Match"/>
+                break;
+        }
+    </MudTabPanel>
+    <MudTabPanel Text="Kills">
+        <KillStatsCard Match="@Match"/>
+    </MudTabPanel>
+    <MudTabPanel Text="Weapons">
+        <WeaponStatsCard Match="@Match"/>
+    </MudTabPanel>
+</MudTabs>
+<MudTooltip Text="Match Perma-Link" Placement="Placement.Left" RootClass="match-link" >
+    <MudIconButton Icon="@Icons.Material.Filled.Link" Color="Color.Inherit" Edge="Edge.End"  Href="@MatchLink" />
+</MudTooltip>
+@code {
+    [Parameter]
+    public Match Match { get; set; }
+
+    private string MatchLink => 
+        $"/match/{Match.Id}";
+}

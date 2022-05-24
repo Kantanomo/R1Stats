@@ -1,0 +1,31 @@
+﻿@using R1StatsModel.Model
+@using R1StatsModel.Extensions
+@using System.Net.Http.Json
+@using R1StatsModel.Enum
+
+<MudTable Items="Match?.Teams" SortLabel="Sort By" RowStyleFunc="RowStyleFunc">
+    <HeaderContent>
+        <MudTh>Team</MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<MatchTeam, object>(x => x.Place)" Enabled="false" InitialDirection="SortDirection.Ascending">
+                Place
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>Score</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Team">@context.Team.GetDisplayName()</MudTd>
+        <MudTd DataLabel="Sign">@context.Place</MudTd>
+        <MudTd DataLabel="Name">@context.Score</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter] 
+    public Match? Match { get; set; }
+
+    private string RowStyleFunc(MatchTeam arg1, int index)
+    {
+        return arg1.Team.GetStyle("background");
+    }
+}

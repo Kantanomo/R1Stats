@@ -1,0 +1,147 @@
+﻿@using R1StatsModel
+@using R1StatsModel.Model
+@using Microsoft.EntityFrameworkCore
+@using R1StatsModel.Extensions
+@using R1StatsModel.Pagenation
+@using R1StatsMud.Shared.MatchParts
+@using System.Collections.Immutable
+@using System.Diagnostics.Eventing.Reader
+
+@inject IDbContextFactory<StatsContext> DbFactory
+
+@page "/player/{id:int}"
+<PageTitle>Player: @player.Name</PageTitle>
+<MudText Typo="Typo.h2">@player.Name</MudText>
+<MudDivider />
+<br/>
+<MudTabs Elevation="10" Rounded="true" ApplyEffectsToContainer="true" Border="true" Color="Color.Dark">
+    <MudTabPanel Text="Stats">
+        <MudChart ChartType="ChartType.Line" SelectedIndexChanged="i => Console.WriteLine(i)" ChartSeries="@Series" XAxisLabels="@AxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+    </MudTabPanel>
+    <MudTabPanel Text="Versus">
+        <MudTable ServerData="(new Func<TableState, Task<TableData<PlayerVersus>>>(GetVersusData))" Dense="true" Hover="true" @ref="versusTable">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Versus</MudText>
+                <MudSpacer/>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh Style="width:30px;"></MudTh>
+                <MudTh>
+                    Opponent
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="Killed" T="PlayerVersus" InitialDirection="SortDirection.Descending">Killed</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="KilledBy" T="PlayerVersus">Killed By</MudTableSortLabel>
+                </MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <MudTooltip Text="Player Perma-Link" Placement="Placement.Right">
+                        <MudIconButton Icon="@Icons.Material.Filled.Link" Color="Color.Inherit" Edge="Edge.End" Href="@(PlayerLink(context.OpponentId))" />
+                    </MudTooltip>
+                </MudTd>
+                <MudTd DataLabel="Opponent">@PlayerName(context.OpponentId)</MudTd>
+                <MudTd DataLabel="Killed">@context.Killed</MudTd>
+                <MudTd DataLabel="KilledBy">@context.KilledBy</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText>No matching players found.</MudText>
+            </NoRecordsContent>
+            <LoadingContent>
+                Loading Players...
+            </LoadingContent>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new []{10,15,20}"/>
+            </PagerContent>
+        </MudTable>
+    </MudTabPanel>
+    <MudTabPanel Text="Match History" Style="padding: 0">
+        <Match_History player_id="@player.Id"/>
+    </MudTabPanel>
+</MudTabs>
+@code {
+    [Parameter]
+    public int id { get; set; }
+    public Player player;
+    //Versus Table Properties
+    public MudTable<PlayerVersus> versusTable;
+    private int totalItems;
+    private IEnumerable<PlayerVersus> pagedData;
+    //Chart Properties
+    public List<ChartSeries> Series = new();
+    public string[] AxisLabels = new string[30];
+    private ChartOptions options = new ChartOptions();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (player != null)
+        {
+            await using var c = await DbFactory.CreateDbContextAsync();
+            var a = c.Players.Include(x => x.Versus).Include(x => x.MatchHistroy).Single(x => x.Id == id);
+            player = a;
+            if (versusTable != null)
+            {
+                await versusTable.ReloadServerData();
+                GetSeriesData();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+
+        var a = c.Players.Include(x => x.Versus).Include(x => x.MatchHistroy).Single(x => x.Id == id);
+        player = a;
+
+        var r = Enumerable.Range(0, 30);
+        foreach (var i in r)
+            AxisLabels[i] = (i+1).ToString();
+        options.InterpolationOption = InterpolationOption.Straight;
+        options.YAxisTicks = 2;
+        options.YAxisFormat = "f1";
+        GetSeriesData();
+    }
+
+    public string PlayerName(int player_id)
+    {
+        using var ctx = DbFactory.CreateDbContext();
+        var a = ctx.Players.Single(x => x.Id == player_id);
+        return a.Name;
+    }
+
+    private async Task<TableData<PlayerVersus>> GetVersusData(TableState state)
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+        totalItems = player.Versus.Count(x => x.Killed != 0 && x.KilledBy != 0);
+        switch (state.SortLabel)
+        {
+            case "Killed":
+                pagedData = player.Versus.OrderByDirection(state.SortDirection, x => x.Killed).Where(x => x.Killed != 0 && x.KilledBy != 0).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                break;
+            case "KilledBy":
+                pagedData = player.Versus.OrderByDirection(state.SortDirection, x => x.KilledBy).Where(x => x.Killed != 0 && x.KilledBy != 0).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                break;
+        }
+        return new TableData<PlayerVersus>() {TotalItems = totalItems, Items = pagedData};
+    }
+
+    private string PlayerLink(int player_id) => 
+        $"/Player/{player_id}";
+
+    private async void GetSeriesData()
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+        var series = new ChartSeries();
+        series.Name = $"{player.Name} Accuracy";
+        series.Data = player.MatchHistroy
+            .OrderByDescending(x => x.Id)
+            .Take(30)
+            .Select(matchPlayer => (double) matchPlayer.HitPercentage * 100)
+            .ToArray();
+
+        Series.Add(series);
+    }
+}

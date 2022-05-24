@@ -1,0 +1,43 @@
+﻿@using R1StatsModel.Model
+@using R1StatsModel.Enum
+
+<div class="match-details-small">
+    <div class="map-image-container">
+        <img class="map-image" src="images/@(Match.Map.Replace(" ", "").ToLower()).png"/>
+        <img class="game-image" src="@GameTypeImage()"/>
+    </div>
+    <div class="match-info-container">
+        <div class="match-info">
+            <p>Variant: @(Match?.Variant)</P>
+        </div>
+        <div class="match-info">
+            <p>Start Time: @(Match?.StartTime)</p>
+        </div>
+        <div class="match-info">
+            <p>End Time: @(Match?.EndTime)</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] 
+    public Match? Match { get; set; }
+
+    public string GameTypeImage()
+    {
+        if (Match != null)
+            return Match.GameType switch
+            {
+                GameType.Slayer => "images/mp_games_slayer.png",
+                GameType.CTF => "images/mp_games_ctf.png",
+                GameType.Assault => "images/mp_games_assault.png",
+                GameType.Territories => "images/mp_games_territories.png",
+                GameType.Oddball => "images/mp_games_oddball.png",
+                GameType.KOTH => "images/mp_games_koth.png",
+                GameType.Juggernaut => "images/mp_games_juggernaut.png",
+                _ => throw new ArgumentOutOfRangeException()
+                };
+        return "";
+    }
+
+}

@@ -1,0 +1,80 @@
+﻿@using R1StatsModel
+@using R1StatsModel.Model
+@using Microsoft.EntityFrameworkCore
+@using R1StatsModel.Extensions
+@using R1StatsModel.Pagenation
+@using R1StatsMud.Shared.MatchParts
+@using System.Collections.Immutable
+@using System.Diagnostics.Eventing.Reader
+@using R1StatsModel.Enum
+
+@inject IDbContextFactory<StatsContext> DbFactory
+
+@page "/"
+
+<MudChart ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@AxisLabels" Width="100%" Height="100%" ChartOptions="options"></MudChart>
+
+
+
+@code {
+
+    public Player player;
+    //Versus Table Properties
+    public MudTable<PlayerVersus> versusTable;
+    private int totalItems;
+    private IEnumerable<PlayerVersus> pagedData;
+    //Chart Properties
+    public List<ChartSeries> Series = new();
+    public string[] AxisLabels = new string[30];
+    private ChartOptions options = new ChartOptions();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+        await c.Matches.LoadAsync();
+        var a = c.Players.Include(x => x.Versus).Include(x => x.MatchHistroy).Single(x => x.Id == 9);
+        player = a;
+
+        options.InterpolationOption = InterpolationOption.Straight;
+        options.YAxisTicks = 1;
+        options.YAxisFormat = "f1";
+        GetSeriesData();
+    }
+
+    private async void GetSeriesData()
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+        var series = new ChartSeries();
+        series.Name = $"{player.Name} Average Life (Seconds)";
+        var data = player.MatchHistroy
+            .OrderByDescending(x => x.Id)
+            .Where(x => x.Match.GameType == GameType.Slayer)
+            .Select(matchPlayer => (double) matchPlayer.AverageLife)
+            .ToArray();
+
+        var aData = new List<double>();
+        int count = 10;
+        for (int i = 0; i < data.Length / count; i++)
+        {
+            var s = i * count;
+            double d = 0;
+            var k = 0;
+            for (var j = 0; j < count; j++)
+            {
+                if (s + j < data.Length)
+                {
+                    d += data[s + j];
+                    k++;
+                }
+            }
+            d /= k;
+            aData.Add(d);
+        }
+        series.Data = aData.ToArray();
+        var r = Enumerable.Range(0, aData.Count + 1);
+        AxisLabels = new string[aData.Count + 1];
+        foreach (var i in r)
+            AxisLabels[i] = (i+1).ToString();
+        Series.Add(series);
+    }
+}

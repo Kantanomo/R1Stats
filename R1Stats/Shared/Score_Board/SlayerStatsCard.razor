@@ -1,0 +1,42 @@
+﻿@using R1StatsModel.Model
+@using R1StatsModel.Extensions
+@using Microsoft.EntityFrameworkCore
+@using R1StatsModel
+@inject IDbContextFactory<StatsContext> DbFactory
+
+<table class="table scoreboard slayer-stats" data-card="match">
+    <thead>
+    <tr>
+        <th>Player</th>
+        <th>Place</th>
+        <th>Average Life</th>
+        <th>Best Spree</th>
+        <th>Score</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var matchPlayer in Match.Players.OrderBy(x => x.Place).ThenByDescending(x => x.Score))
+    {
+        <tr class="@($"team-{matchPlayer.Team.GetDisplayName().ToLower()}")">
+            <td>@PlayerName(matchPlayer)</td>
+            <td>@matchPlayer.Place</td>
+            <td>@matchPlayer.AverageLifeString</td>
+            <td>@matchPlayer.BestSpree</td>
+            <td>@matchPlayer.ScoreString</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public Match Match { get; set; }
+
+    public string PlayerName(MatchPlayer player)
+    {
+        using var ctx = DbFactory.CreateDbContext();
+        var a = ctx.MatchPlayers.Include(x => x.Player).Single(x => x.Id == player.Id);
+        return a.Player.Name;
+    }
+    
+}
