@@ -12,9 +12,24 @@
 
 @page "/"
 
-<MudChart ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@AxisLabels" Width="100%" Height="100%" ChartOptions="options"></MudChart>
-
-
+@*<MudChart ChartType="MudBlazor.ChartType.Line" ChartSeries="@Series" XAxisLabels="@AxisLabels" Width="100%" Height="100%" ChartOptions="options"></MudChart>*@
+@if (playerData != null)
+{
+    <MudCard>
+        <MudCardContent>
+            <ApexChart TItem="Player" Title="Top Accuracy" Options="apexoptions">
+                <ApexPointSeries
+                    Name="Kills"
+                    TItem="Player"
+                    Items="playerData"
+                    SeriesType="SeriesType.Bar"
+                    XValue="(matchPlayer => matchPlayer.Name)"
+                    YValue="matchPlayer => (decimal) matchPlayer.HitPercentage * 100"
+                    ShowDataLabels/>
+            </ApexChart>
+        </MudCardContent>
+    </MudCard>
+}
 
 @code {
 
@@ -23,10 +38,15 @@
     public MudTable<PlayerVersus> versusTable;
     private int totalItems;
     private IEnumerable<PlayerVersus> pagedData;
-    //Chart Properties
+    //Mud Blazor Chart Properties
     public List<ChartSeries> Series = new();
     public string[] AxisLabels = new string[30];
     private ChartOptions options = new ChartOptions();
+
+    //Apex Charts Properties
+    private List<Player> playerData { get; set; }
+    private ApexChartOptions<Player> apexoptions;
+    private ApexChart<Player> chart;
 
     protected override async Task OnInitializedAsync()
     {
@@ -38,7 +58,23 @@
         options.InterpolationOption = InterpolationOption.Straight;
         options.YAxisTicks = 1;
         options.YAxisFormat = "f1";
-        GetSeriesData();
+        //GetSeriesData();
+
+
+        apexoptions = new ApexChartOptions<Player>
+        {
+            Theme = new Theme
+            {
+                Mode = Mode.Dark,
+                Palette = PaletteType.Palette1
+            },
+            Stroke = new Stroke { Curve = Curve.Smooth },
+            DataLabels = new DataLabels
+            {
+                TextAnchor = TextAnchor.Middle,
+            }
+        };
+        GetApexData();
     }
 
     private async void GetSeriesData()
@@ -76,5 +112,15 @@
         foreach (var i in r)
             AxisLabels[i] = (i+1).ToString();
         Series.Add(series);
+    }
+
+    private async void GetApexData()
+    {
+        await using var c = await DbFactory.CreateDbContextAsync();
+        //var data = player.MatchHistroy
+        //    .OrderByDescending(x => x.Id)
+        //    .Where(x => x.Match.GameType == GameType.Slayer);
+        var data = c.Players.OrderBy(x => x.HitPercentage).Where(x => x.Wins + x.Losses > 10).Take(10);
+        playerData = data.ToList();
     }
 }

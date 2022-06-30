@@ -1,0 +1,38 @@
+﻿@using R1StatsModel.Model
+@using R1StatsModel.Extensions
+@using System.Net.Http.Json
+@using Microsoft.EntityFrameworkCore
+@using R1StatsModel
+@using R1StatsModel.Enum
+
+@inject IDbContextFactory<StatsContext> DbFactory
+
+<MudTable Items="Match?.Players.OrderBy(x => x.Place).ThenByDescending(x => x.Score)" SortLabel="Sort By" RowStyleFunc="RowStyleFunc">
+    <HeaderContent>
+        <MudTh>Player</MudTh>
+        <MudTh>Killed</MudTh>
+        <MudTh>Killed By</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Player">@PlayerName(context)</MudTd>
+        <MudTd DataLabel="Shots Hit">@context.ShotsHit</MudTd>
+        <MudTd DataLabel="Shots Fired">@context.ShotsFired</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter] 
+    public Match? Match { get; set; }
+
+    public string PlayerName(MatchPlayer player)
+    {
+        using var ctx = DbFactory.CreateDbContext();
+        var a = ctx.MatchPlayers.Include(x => x.Player).Single(x => x.Id == player.Id);
+        return a.Player.Name;
+    }
+
+    private string RowStyleFunc(MatchPlayer arg1, int index)
+    {
+        return arg1.Team.GetStyle("background");
+    }
+}

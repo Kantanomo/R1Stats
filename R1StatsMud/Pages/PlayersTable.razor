@@ -51,7 +51,7 @@
     <RowTemplate>
         <MudTd>
             <MudTooltip Text="Player Perma-Link" Placement="Placement.Right">
-                <MudIconButton Icon="@Icons.Material.Filled.Link" Color="Color.Inherit" Edge="Edge.End" Href="@(PlayerLink(context))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Link" Color="MudBlazor.Color.Inherit" Edge="Edge.End" Href="@(PlayerLink(context))" />
             </MudTooltip>
         </MudTd>
         <MudTd DataLabel="Name">@context.Name</MudTd>
@@ -92,46 +92,48 @@
     private async Task<TableData<Player>> GetData(TableState state)
     {
         await using var c = await DbFactory.CreateDbContextAsync();
-        totalItems = c.Players.Count(x => x.Wins + x.Losses > 10);
+        var minMatchFilter = 35;
+
+        totalItems = c.Players.Count(x => x.Wins + x.Losses > minMatchFilter);
         if (string.IsNullOrEmpty(searchString))
         {
             switch (state.SortLabel)
             {
                 case "Name":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Name).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Name).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "Rank":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Rank).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Rank).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "Kills":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Kills).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Kills).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "Assists":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Assists).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Assists).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "Deaths":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Deaths).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Deaths).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "KDA":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.KDA).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.KDA).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "Ratio":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.KDARatio).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.KDARatio).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "Wins":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Wins).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Wins).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "Loss":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Losses).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Losses).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
                 case "WLRatio":
-                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.WinLossRatio).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                    pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.WinLossRatio).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
                     break;
             }
         }
         else
         {
-            pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Name).Where(x => x.Name.Contains(searchString)).Where(x => x.Wins + x.Losses > 10).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+            pagedData = c.Players.OrderByDirection(state.SortDirection, x => x.Name).Where(x => x.Name.Contains(searchString)).Where(x => x.Wins + x.Losses > minMatchFilter).Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
         }
         return new TableData<Player>() {TotalItems = totalItems, Items = pagedData};
     }

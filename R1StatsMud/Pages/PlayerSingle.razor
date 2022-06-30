@@ -14,9 +14,10 @@
 <MudText Typo="Typo.h2">@player.Name</MudText>
 <MudDivider />
 <br/>
-<MudTabs Elevation="10" Rounded="true" ApplyEffectsToContainer="true" Border="true" Color="Color.Dark">
+<MudTabs Elevation="10" Rounded="true" ApplyEffectsToContainer="true" Border="true" Color="MudBlazor.Color.Dark">
     <MudTabPanel Text="Stats">
-        <MudChart ChartType="ChartType.Line" SelectedIndexChanged="i => Console.WriteLine(i)" ChartSeries="@Series" XAxisLabels="@AxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+        <MudAutocomplete T="Player" Label="Comapre To.." SearchFunc="SearchPlayer" ToStringFunc="playerToStringFunc" CoerceText  />
+        <MudChart ChartType="MudBlazor.ChartType.Line" SelectedIndexChanged="i => Console.WriteLine(i)" ChartSeries="@Series" XAxisLabels="@AxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
     </MudTabPanel>
     <MudTabPanel Text="Versus">
         <MudTable ServerData="(new Func<TableState, Task<TableData<PlayerVersus>>>(GetVersusData))" Dense="true" Hover="true" @ref="versusTable">
@@ -39,7 +40,7 @@
             <RowTemplate>
                 <MudTd>
                     <MudTooltip Text="Player Perma-Link" Placement="Placement.Right">
-                        <MudIconButton Icon="@Icons.Material.Filled.Link" Color="Color.Inherit" Edge="Edge.End" Href="@(PlayerLink(context.OpponentId))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Link" Color="MudBlazor.Color.Inherit" Edge="Edge.End" Href="@(PlayerLink(context.OpponentId))" />
                     </MudTooltip>
                 </MudTd>
                 <MudTd DataLabel="Opponent">@PlayerName(context.OpponentId)</MudTd>
@@ -65,6 +66,9 @@
     [Parameter]
     public int id { get; set; }
     public Player player;
+    //Compare properties
+    public string SearchTerm;
+    private IEnumerable<Player> SearchResults;
     //Versus Table Properties
     public MudTable<PlayerVersus> versusTable;
     private int totalItems;
@@ -144,4 +148,23 @@
 
         Series.Add(series);
     }
+
+    private async Task<IEnumerable<Player>> SearchPlayer(string value)
+    {
+        var c = await DbFactory.CreateDbContextAsync();
+
+        SearchResults = 
+            string.IsNullOrEmpty(value) ? 
+                c.Players.OrderBy(x => x.Name).Take(5) : 
+                c.Players.OrderBy(x => x.Name).Where(x => x.Name.ToLower().Contains(value));
+        return SearchResults.Take(5);
+    }
+
+    private string playerToStringFunc(Player aPlayer)
+    {
+        if (aPlayer == null)
+            return "";
+        return aPlayer.Name;
+    }
+
 }

@@ -2,7 +2,7 @@
 @using R1StatsMud.Shared.MatchParts.Score_Board
 @using R1StatsModel.Enum
 
-<MudTabs Elevation="10" Rounded="true" ApplyEffectsToContainer="true" Border="true" Color="@Color.Dark">
+<MudTabs Elevation="10" Rounded="true" ApplyEffectsToContainer="true" Border="true" Color="@MudBlazor.Color.Dark">
     <MudTabPanel Text="Team" Style="padding:0;">
         <TeamStatsCard Match="@Match"/>
     </MudTabPanel>
@@ -40,7 +40,7 @@
     </MudTabPanel>
 </MudTabs>
 <MudTooltip Text="Match Perma-Link" Placement="Placement.Left" RootClass="match-link" >
-    <MudIconButton Icon="@Icons.Material.Filled.Link" Color="Color.Inherit" Edge="Edge.End"  Href="@MatchLink" />
+    <MudIconButton Icon="@Icons.Material.Filled.Link" Color="MudBlazor.Color.Inherit" Edge="Edge.End"  Href="@MatchLink" />
 </MudTooltip>
 @code {
     [Parameter]
